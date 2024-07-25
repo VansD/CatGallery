@@ -18,8 +18,7 @@ import photoStore from "../../stores/photo";
 import { ModalPhoto } from './ModalPhoto';
 import { get } from '../../helpers/request';
 import background from "../../resources/background.jpg";
-
-type OrientalFlatListProps = { numColumns: number }
+import { EmptyData } from '../../components/EmptyData';
 
 export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
@@ -29,10 +28,19 @@ export const Gallery = observer((): React.JSX.Element => {
   const orientation = useDeviceOrientation();
 
   const getPhotos = () => {
-    get<PhotoType[]>(`https://api.thecatapi.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`,
-      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) })
-    //   `https://api.pexels.com/v1/search?query=nature`
-    //   `https://api.thecatapi12.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`
+    // 1. Ресурс не доступен
+    //let url = `https://api.pexels.com/v1/search?query=nature`;
+    
+    // 2. Ресурс не найден
+    //let url = `https://api.thecatapi12.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`;
+
+    // 3. Ok
+    let url = `https://api.thecatapi.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`;
+
+    get<PhotoType[]>(url,
+      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) },
+      () => {setIsFirstLoading(false)}
+    )
   }
 
   useEffect(() => {
@@ -40,41 +48,41 @@ export const Gallery = observer((): React.JSX.Element => {
     setIsFirstLoading(false)
   }, [])
 
-  if (isFirstLoading)
-    return <ActivityIndicator />
-
-
-
-  const OrientalFlatList = ({ numColumns }: OrientalFlatListProps): React.JSX.Element => {
-    return <FlatList
-      refreshControl={
-        <RefreshControl refreshing={false} onRefresh={() => { clearPhotos(), getPhotos() }} />
-      }
-      data={photos}
-      keyExtractor={(item, i) => item.id + i}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-      horizontal={false}
-      numColumns={numColumns}
-      refreshing={true}
-      onEndReached={() => getPhotos()}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={ActivityIndicator}
-      renderItem={({ item, index }) => (
-        <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
-          <MemoizedPhoto title={item.title} url={item.url} page={currentPage} index={index} />
-        </TouchableOpacity>
-      )}
-      removeClippedSubviews={true}
-    />
+  const viewabilityConfig = {
+    waitForInteraction: true,
+    viewAreaCoveragePercentThreshold: 95
   }
 
+  if (isFirstLoading)
+    return <ActivityIndicator />
+  
+  if (photos.length === 0)
+    return <EmptyData />
 
   return <View style={styles.content}>
     <ImageBackground source={background}>
-      {orientation == "portrait"
-        ? <OrientalFlatList numColumns={2} />
-        : <OrientalFlatList numColumns={4} />}
+        <FlatList
+          refreshControl={
+            <RefreshControl refreshing={false} onRefresh={() => { clearPhotos(), getPhotos() }} />
+          }
+          data={photos}
+          keyExtractor={(item, i) => item.id + i}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          horizontal={false}
+          numColumns={2} //todo: landscape? на лету нельзя менять
+          refreshing={true}
+          onEndReached={() => photos.length > 0 && getPhotos()}
+          onEndReachedThreshold={0.5}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
+              <MemoizedPhoto title={item.title} url={item.url} page={currentPage} index={index} />
+            </TouchableOpacity>
+          )}
+          removeClippedSubviews={true}
+          viewabilityConfig={viewabilityConfig}
+        //ListEmptyComponent={isFirstLoading  ? <ActivityIndicator/> : <EmptyData/> } todo: работает неправильно
+        />
     </ImageBackground>
     <ModalPhoto index={selectedImageIndex} close={() => setSelectedImageIndex(null)} />
 
