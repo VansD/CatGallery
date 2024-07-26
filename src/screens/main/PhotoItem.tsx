@@ -2,6 +2,7 @@ import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 import FastImage from 'react-native-fast-image'
 import { Loader } from "../../components/Loader";
 import { useState } from "react";
+import { PHOTO_HEIGHT_WITH_MARGIN, PHOTO_WIDTH_WITH_MARGIN } from "../../config";
 
 export type PhotoProps = {
   title: string;
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
   },
   img: {
     borderRadius: 16,
-    width: 160,
-    height: 160
+    width: PHOTO_WIDTH_WITH_MARGIN,
+    height: PHOTO_HEIGHT_WITH_MARGIN
   }
 });

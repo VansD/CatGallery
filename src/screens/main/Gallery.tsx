@@ -24,7 +24,7 @@ export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [isFirstLoading, setIsFirstLoading] = useState<boolean>(true);
-  const numColumns = Math.floor(Dimensions.get("window").width / 200);
+  const numColumns = Math.floor(Dimensions.get("window").width / (PHOTO_WIDTH_WITH_MARGIN + 20));
 
   const getPhotos = () => {
     // Доступны ссылки:
@@ -71,7 +71,7 @@ export const Gallery = observer((): React.JSX.Element => {
         data={photos}
         keyExtractor={(item, i) => item.id + i}
         getItemLayout={(data, index) => (
-          {length: 200, offset: 20 * index, index}
+          {length: PHOTO_WIDTH_WITH_MARGIN, offset: PHOTO_WIDTH_WITH_MARGIN * index, index}
         )}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
