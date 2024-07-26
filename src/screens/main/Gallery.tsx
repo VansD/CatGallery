@@ -24,7 +24,7 @@ export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [isFirstLoading, setIsFirstLoading] = useState<boolean>(true);
-  const numColumns = Math.floor(Dimensions.get("screen").width / 200);
+  const numColumns = Math.floor(Dimensions.get("window").width / 200);
 
   const getPhotos = () => {
     // Доступны ссылки:
@@ -47,9 +47,11 @@ export const Gallery = observer((): React.JSX.Element => {
     viewAreaCoveragePercentThreshold: 95
   }
 
+  const MemoPhoto = memo(Photo)
+
   const renderItem = useCallback((item: PhotoType, index: number) => (
     <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
-      <Photo title={item.title} url={item.url} page={currentPage} index={index} />
+      <MemoPhoto title={item.title} url={item.url} page={currentPage} index={index} />
     </TouchableOpacity>
   ), [])
 
@@ -67,7 +69,10 @@ export const Gallery = observer((): React.JSX.Element => {
           <RefreshControl refreshing={false} onRefresh={() => { clearPhotos(), getPhotos() }} />
         }
         data={photos}
-        keyExtractor={(item, i) => i.toString()}
+        keyExtractor={(item, i) => item.id + i}
+        getItemLayout={(data, index) => (
+          {length: 200, offset: 20 * index, index}
+        )}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         horizontal={false}

@@ -1,4 +1,7 @@
-import { Image, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
+import FastImage from 'react-native-fast-image'
+import { Loader } from "../../components/Loader";
+import { useState } from "react";
 
 export type PhotoProps = {
   title: string;
@@ -8,9 +11,11 @@ export type PhotoProps = {
 };
 
 export const Photo = ({ title, url, page, index }: PhotoProps): React.JSX.Element => {
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+
   return (
     <View style={styles.sectionContainer}>
-      <Image source={{ uri: url }} alt={title}
+      <FastImage source={{ uri: url, priority: FastImage.priority.normal }}
         resizeMode="cover" style={styles.img} />
     </View>
   );
