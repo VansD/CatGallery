@@ -1,27 +1,32 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   FlatList,
   ImageBackground,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 import { Photo, PhotoProps } from './PhotoItem';
 import { PhotoType } from '../../models/Photo';
 import { observer } from 'mobx-react-lite';
 import photoStore from "../../stores/photo";
+import appStore from "../../stores/app";
 import { ModalPhoto } from './ModalPhoto';
 import { get } from '../../helpers/request';
 import background from "../../resources/background.jpg";
 import { EmptyData } from '../../components/EmptyData';
 import { API_URL_OK, API_URL_NOT_ACCESS, API_URL_NOT_FOUND, PHOTO_WIDTH_WITH_MARGIN } from '../../config';
+import Dialog, { SlideAnimation, DialogContent } from 'react-native-popup-dialog';
 
 export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
+  const { isOpenedMenu, activeUrl, setActiveUrl, setIsOpenedMenu } = appStore;
+
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [isFirstLoading, setIsFirstLoading] = useState<boolean>(true);
   const numColumns = Math.floor(Dimensions.get("window").width / (PHOTO_WIDTH_WITH_MARGIN + 20));
@@ -32,15 +37,16 @@ export const Gallery = observer((): React.JSX.Element => {
     // API_URL_NOT_ACCESS - доступ заблокирован
     // API_URL_NOT_FOUND - страница не найдена
 
-    get<PhotoType[]>(API_URL_OK(currentPage),
-      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) }
+    get<PhotoType[]>(activeUrl,
+      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) },
+      () => { clearPhotos() }
     )
   }
 
   useEffect(() => {
     getPhotos()
     setIsFirstLoading(false)
-  }, [numColumns])
+  }, [numColumns, activeUrl])
 
   const viewabilityConfig = {
     waitForInteraction: true,
@@ -69,7 +75,7 @@ export const Gallery = observer((): React.JSX.Element => {
         data={photos}
         keyExtractor={(item, i) => item.id + i}
         getItemLayout={(data, index) => (
-          {length: PHOTO_WIDTH_WITH_MARGIN, offset: PHOTO_WIDTH_WITH_MARGIN * index, index}
+          { length: PHOTO_WIDTH_WITH_MARGIN, offset: PHOTO_WIDTH_WITH_MARGIN * index, index }
         )}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
@@ -82,12 +88,11 @@ export const Gallery = observer((): React.JSX.Element => {
         renderItem={({ item, index }) => renderItem(item, index)}
         removeClippedSubviews={true}
         viewabilityConfig={viewabilityConfig}
-        ListFooterComponent={<ActivityIndicator/>}
+        ListFooterComponent={<ActivityIndicator />}
       //ListEmptyComponent={isFirstLoading  ? <ActivityIndicator/> : <EmptyData/> } todo: работает неправильно
       />
     </ImageBackground>
     <ModalPhoto index={selectedImageIndex} close={() => setSelectedImageIndex(null)} />
-
   </View>
 })
 
