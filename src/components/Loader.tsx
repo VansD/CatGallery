@@ -18,6 +18,8 @@ const styles = StyleSheet.create({
   img: {
     marginTop: 450,
     width: 300,
-    height: 300
+    height: 300,
+    zIndex:1000,
+    color: "white"
   }
 })

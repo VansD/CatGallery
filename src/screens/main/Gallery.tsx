@@ -1,6 +1,7 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
   ImageBackground,
   RefreshControl,
@@ -9,9 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { useDeviceOrientation } from '@react-native-community/hooks';
-
-import { Photo } from './PhotoItem';
+import { Photo, PhotoProps } from './PhotoItem';
 import { PhotoType } from '../../models/Photo';
 import { observer } from 'mobx-react-lite';
 import photoStore from "../../stores/photo";
@@ -19,70 +18,70 @@ import { ModalPhoto } from './ModalPhoto';
 import { get } from '../../helpers/request';
 import background from "../../resources/background.jpg";
 import { EmptyData } from '../../components/EmptyData';
+import { API_URL_OK, API_URL_NOT_ACCESS, API_URL_NOT_FOUND, PHOTO_WIDTH_WITH_MARGIN } from '../../config';
 
 export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
   const [isFirstLoading, setIsFirstLoading] = useState<boolean>(true);
-  const MemoizedPhoto = memo((Photo));
-  const orientation = useDeviceOrientation();
+  const numColumns = Math.floor(Dimensions.get("screen").width / 200);
 
   const getPhotos = () => {
-    // 1. Ресурс не доступен
-    //let url = `https://api.pexels.com/v1/search?query=nature`;
-    
-    // 2. Ресурс не найден
-    //let url = `https://api.thecatapi12.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`;
+    // Доступны ссылки:
+    // API_URL_OK - успешный запрос, используется с параметром currentPage
+    // API_URL_NOT_ACCESS - доступ заблокирован
+    // API_URL_NOT_FOUND - страница не найдена
 
-    // 3. Ok
-    let url = `https://api.thecatapi.com/v1/images/search?size=med&mime_types=jpg&format=json&has_breeds=true&page=${currentPage}&limit=10`;
-
-    get<PhotoType[]>(url,
-      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) },
-      () => {setIsFirstLoading(false)}
+    get<PhotoType[]>(API_URL_OK(currentPage),
+      (response) => { setPhotos(response.data), setCurrentPage(currentPage + 1) }
     )
   }
 
   useEffect(() => {
     getPhotos()
     setIsFirstLoading(false)
-  }, [])
+  }, [numColumns])
 
   const viewabilityConfig = {
     waitForInteraction: true,
     viewAreaCoveragePercentThreshold: 95
   }
 
+  const renderItem = useCallback((item: PhotoType, index: number) => (
+    <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
+      <Photo title={item.title} url={item.url} page={currentPage} index={index} />
+    </TouchableOpacity>
+  ), [])
+
   if (isFirstLoading)
     return <ActivityIndicator />
-  
+
   if (photos.length === 0)
     return <EmptyData />
 
+
   return <View style={styles.content}>
     <ImageBackground source={background}>
-        <FlatList
-          refreshControl={
-            <RefreshControl refreshing={false} onRefresh={() => { clearPhotos(), getPhotos() }} />
-          }
-          data={photos}
-          keyExtractor={(item, i) => item.id + i}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          horizontal={false}
-          numColumns={2} //todo: landscape? на лету нельзя менять
-          refreshing={true}
-          onEndReached={() => photos.length > 0 && getPhotos()}
-          onEndReachedThreshold={0.5}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
-              <MemoizedPhoto title={item.title} url={item.url} page={currentPage} index={index} />
-            </TouchableOpacity>
-          )}
-          removeClippedSubviews={true}
-          viewabilityConfig={viewabilityConfig}
-        //ListEmptyComponent={isFirstLoading  ? <ActivityIndicator/> : <EmptyData/> } todo: работает неправильно
-        />
+      <FlatList
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={() => { clearPhotos(), getPhotos() }} />
+        }
+        data={photos}
+        keyExtractor={(item, i) => i.toString()}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        horizontal={false}
+        numColumns={numColumns}
+        key={numColumns}
+        refreshing={true}
+        onEndReached={() => photos.length > 0 && getPhotos()}
+        onEndReachedThreshold={0.5}
+        renderItem={({ item, index }) => renderItem(item, index)}
+        removeClippedSubviews={true}
+        viewabilityConfig={viewabilityConfig}
+        ListFooterComponent={<ActivityIndicator/>}
+      //ListEmptyComponent={isFirstLoading  ? <ActivityIndicator/> : <EmptyData/> } todo: работает неправильно
+      />
     </ImageBackground>
     <ModalPhoto index={selectedImageIndex} close={() => setSelectedImageIndex(null)} />
 
