@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -47,11 +47,9 @@ export const Gallery = observer((): React.JSX.Element => {
     viewAreaCoveragePercentThreshold: 95
   }
 
-  const MemoPhoto = memo(Photo)
-
   const renderItem = useCallback((item: PhotoType, index: number) => (
     <TouchableOpacity onPress={() => setSelectedImageIndex(index)}>
-      <MemoPhoto title={item.title} url={item.url} page={currentPage} index={index} />
+      <Photo title={item.title} url={item.url} page={currentPage} index={index} />
     </TouchableOpacity>
   ), [])
 
