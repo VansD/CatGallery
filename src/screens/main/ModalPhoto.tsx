@@ -1,5 +1,5 @@
 import { Image, Modal, StyleSheet, View, Animated, Text, TouchableOpacity, Button } from "react-native"
-import React, { useCallback } from "react"
+import React, { useCallback, useRef } from "react"
 import photoStore from "../../stores/photo";
 import { observer } from "mobx-react-lite";
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -13,9 +13,20 @@ type ModalPhotoProps = {
 export const ModalPhoto = observer(({ index, close }: ModalPhotoProps): React.JSX.Element => {
     const {photos} = photoStore;
     const photoUrls = photos.map(photo => { return {url: photo.url}})
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const fadeOutCloseButton = () => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 100,
+          useNativeDriver: true,
+        }).start(({finished}) => {
+            if (finished)
+                close()
+        });
+      };
     return <Modal visible={index != null} animationType="slide">
-        <View style={styles.container} >
-            <TouchableOpacity onPressIn={close}>
+        <Animated.View style={styles.container} >
+            <TouchableOpacity onPressIn={fadeOutCloseButton}>
                 <Animated.Text style={styles.closeButton}>x</Animated.Text>
             </TouchableOpacity>
             <ImageViewer imageUrls={photoUrls} 
@@ -24,7 +35,7 @@ export const ModalPhoto = observer(({ index, close }: ModalPhotoProps): React.JS
                 minScale={0.5}
                 maxScale={5}/>
 
-        </View>
+        </Animated.View>
     </Modal>
 })
 
