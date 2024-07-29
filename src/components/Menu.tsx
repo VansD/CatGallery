@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import React, { useRef } from "react";
-import { Animated, Image,  StyleSheet, View } from "react-native";
+import { Animated, Image, StyleSheet, Text, View } from "react-native";
 import appStore from "../stores/app";
 import photoStore from "../stores/photo";
 import menu from "../resources/menu.png";
@@ -21,7 +21,7 @@ export const MenuHead = observer((): React.JSX.Element => {
                 setIsOpenedMenu(true)
         });
     };
-    return <View  >
+    return <View style={styles.container}>
         <Menu opened={isOpenedMenu}>
             <MenuTrigger onPress={openMenu}>
                 <Image source={menu} style={styles.menuImg} />
@@ -29,16 +29,22 @@ export const MenuHead = observer((): React.JSX.Element => {
             <MenuOptions>
                 <MenuOption onSelect={() => {
                     setActiveUrl(API_URL_OK(currentPage)),
-                    setIsOpenedMenu(false)
-                }} text='Успешный запрос' />
+                        setIsOpenedMenu(false)
+                }}>
+                    <Text style={styles.text}>Успешный запрос</Text>
+                </MenuOption>
                 <MenuOption onSelect={() => {
                     setActiveUrl(API_URL_NOT_FOUND)
                     setIsOpenedMenu(false)
-                }} text="Страница не найдена" />
+                }}>
+                    <Text style={styles.text}>Страница не найдена</Text>
+                </MenuOption>
                 <MenuOption onSelect={() => {
                     setActiveUrl(API_URL_NOT_ACCESS)
                     setIsOpenedMenu(false)
-                }} text="Ресурс заблокирован" />
+                }}>
+                    <Text style={styles.text}>Ресурс заблокирован</Text>
+                </MenuOption>
             </MenuOptions>
         </Menu>
     </View>
@@ -52,7 +58,16 @@ const styles = StyleSheet.create({
         zIndex: 1000,
         backgroundColor: "white",
         borderRadius: 25,
+        
+    },
+    container: {
         marginRight: 42,
         marginTop: 10
+    },
+    text: {
+        margin: 5,
+        fontSize: 16,
+        zIndex: 100,
+        color: "black"
     }
 })
