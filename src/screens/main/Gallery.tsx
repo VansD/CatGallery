@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
   Dimensions,
   FlatList,
   ImageBackground,
@@ -11,7 +9,7 @@ import {
   View
 } from 'react-native';
 
-import { Photo, PhotoProps } from './PhotoItem';
+import { Photo } from './PhotoItem';
 import { PhotoType } from '../../models/Photo';
 import { observer } from 'mobx-react-lite';
 import photoStore from "../../stores/photo";
@@ -20,8 +18,8 @@ import { ModalPhoto } from './ModalPhoto';
 import { get } from '../../helpers/request';
 import background from "../../resources/background.jpg";
 import { EmptyData } from '../../components/EmptyData';
-import { API_URL_OK, API_URL_NOT_ACCESS, API_URL_NOT_FOUND, PHOTO_WIDTH_WITH_MARGIN } from '../../config';
-import Dialog, { SlideAnimation, DialogContent } from 'react-native-popup-dialog';
+import { PHOTO_WIDTH_WITH_MARGIN } from '../../config';
+import { Loader } from '../../components/Loader';
 
 export const Gallery = observer((): React.JSX.Element => {
   const { photos, setPhotos, currentPage, setCurrentPage, clearPhotos } = photoStore;
@@ -60,7 +58,7 @@ export const Gallery = observer((): React.JSX.Element => {
   ), [])
 
   if (isFirstLoading)
-    return <ActivityIndicator />
+    return <Loader />
 
   if (photos.length === 0)
     return <EmptyData />
@@ -88,7 +86,7 @@ export const Gallery = observer((): React.JSX.Element => {
         renderItem={({ item, index }) => renderItem(item, index)}
         removeClippedSubviews={true}
         viewabilityConfig={viewabilityConfig}
-        ListFooterComponent={<ActivityIndicator />}
+        ListFooterComponent={<Loader />}
       //ListEmptyComponent={isFirstLoading  ? <ActivityIndicator/> : <EmptyData/> } todo: работает неправильно
       />
     </ImageBackground>

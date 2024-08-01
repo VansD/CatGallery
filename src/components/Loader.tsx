@@ -1,11 +1,10 @@
-import { View, Image, StyleSheet } from "react-native";
-
-//not showing
+import { View, StyleSheet } from "react-native";
 import loaderGif from "../resources/loader.gif";
+import FastImage from "react-native-fast-image";
 
 export const Loader = () => {
   return <View style={styles.container}>
-    <Image source={loaderGif} style={styles.img} />
+    <FastImage source={loaderGif} style={styles.img} />
   </View>
 };
 
@@ -16,10 +15,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   img: {
-    marginTop: 450,
-    width: 300,
-    height: 300,
-    zIndex:1000,
-    color: "white"
+    width: 100,
+    height: 100,
   }
 })
